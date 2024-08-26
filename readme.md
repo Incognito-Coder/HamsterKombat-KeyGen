@@ -8,6 +8,6 @@ git clone https://github.com/seligr/HamsterKombat-KeyGen.git
 ```
 run script via:
 ```
-python keygen.py
+start.sh
 ```
 for update just run git pull
