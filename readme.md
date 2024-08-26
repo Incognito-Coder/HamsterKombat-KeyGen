@@ -4,7 +4,7 @@ Automated hamsterkombat promo codes generator working asynchronously.
 ### Manual Install
 clone or download this repo:
 ```
-git clone https://github.com/seligr/HamsterKombat-KeyGen.git
+git clone https://github.com/seligor/HamsterKombat-KeyGen.git
 ```
 run script via:
 ```
