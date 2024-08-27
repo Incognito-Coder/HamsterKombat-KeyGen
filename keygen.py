@@ -14,6 +14,7 @@ Base = declarative_base()
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 session = Session
+write_to_database = False
 
 class Record(Base):
     __tablename__ = 'records'
@@ -142,8 +143,10 @@ async def get_promo_code(app_token: str, promo_id: str, file: str, event_timeout
                     promo_code = response_json.get("promoCode")
                     if promo_code:
                         logger.success(f"Promo code is found: {promo_code}")
-                        insert_to_db(promo_code)
-#                        open(f'{file}.txt', 'a').write(promo_code + "\n")
+                        if write_to_database:
+                            insert_to_db(promo_code)
+                        else:
+                            open(f'{file}.txt', 'a').write(promo_code + "\n")
                         return promo_code
             except Exception as error:
                 logger.error(f"Error while getting promo code: {error}")
