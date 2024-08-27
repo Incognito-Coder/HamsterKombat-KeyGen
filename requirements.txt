@@ -1,0 +1,4 @@
+aiohttp
+loguru
+sqlalchemy
+pymysql

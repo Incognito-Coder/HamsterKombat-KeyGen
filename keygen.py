@@ -1,11 +1,31 @@
 import time
-import random
 import uuid
 import aiohttp
 import asyncio
 import sys
 import os
+import random
 from loguru import logger
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker, declarative_base
+DATABASE_URL = 'mysql+pymysql://root:123123@192.168.10.28/123123'
+Base = declarative_base()
+engine = create_engine(DATABASE_URL)
+Session = sessionmaker(bind=engine)
+write_to_database = False
+
+
+class Record(Base):
+    __tablename__ = 'records'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=True)
+    content = Column(String(255))
+    date_sent = Column(String(10), nullable=True)
+
+
+Base.metadata.create_all(engine)
+
+
 os.system('title HamsterKombat Games Code Generator')
 
 logger.remove()
@@ -26,42 +46,36 @@ games = {
         'promoId': 'b4170868-cef0-424f-8eb9-be0622e8e8e3'
     },
     3: {
-        'name': 'My Clone Army',
-        'short': 'clone',
-        'appToken': '74ee0b5b-775e-4bee-974f-63e7f4d5bacb',
-        'promoId': 'fe693b26-b342-4159-8808-15e3ff7f8767'
-    },
-    4: {
         'name': 'Train Miner',
         'short': 'train',
         'appToken': '82647f43-3f87-402d-88dd-09a90025313f',
         'promoId': 'c4480ac7-e178-4973-8061-9ed5b2e17954'
     },
-    5: {
+    4: {
         'name': 'Merge Away',
         'short': 'away',
         'appToken': '8d1cc2ad-e097-4b86-90ef-7a27e19fb833',
         'promoId': 'dc128d28-c45b-411c-98ff-ac7726fbaea4'
     },
-    6: {
+    5: {
         'name': 'Twerk Race 3D',
         'short': 'twerk',
         'appToken': '61308365-9d16-4040-8bb0-2f4a4c69074c',
         'promoId': '61308365-9d16-4040-8bb0-2f4a4c69074c'
     },
-    7: {
+    6: {
         'name': 'Polysphere',
         'short': 'poly',
         'appToken': '2aaf5aee-2cbc-47ec-8a3f-0962cc14bc71',
         'promoId': '2aaf5aee-2cbc-47ec-8a3f-0962cc14bc71'
     },
-    8: {
+    7: {
         'name': 'Mow and Trim',
         'short': 'trim',
         'appToken': 'ef319a80-949a-492e-8ee0-424fb5fc20a6',
         'promoId': 'ef319a80-949a-492e-8ee0-424fb5fc20a6'
     },
-    9: {
+    8: {
         'name': 'Mud Racing',
         'short': 'mud',
         'appToken': '8814a785-97fb-4177-9193-ca4180ff9da8',
@@ -79,6 +93,14 @@ def generate_client_id():
 
 def generate_event_id():
     return str(uuid.uuid4())
+
+
+def insert_to_db(promo_code):
+    with Session() as session:
+        new_code = Record(user_id=None, content=promo_code, date_sent=None)
+        session.add(new_code)
+        session.commit()
+        session.close()
 
 
 async def get_promo_code(app_token: str, promo_id: str, file: str, event_timeout: int, max_attempts: int = 30):
@@ -122,12 +144,16 @@ async def get_promo_code(app_token: str, promo_id: str, file: str, event_timeout
                     promo_code = response_json.get("promoCode")
                     if promo_code:
                         logger.success(f"Promo code is found: {promo_code}")
-                        open(f'{file}.txt', 'a').write(promo_code + "\n")
+                        if write_to_database:
+                            insert_to_db(promo_code)
+                        else:
+                            open(f'{file}.txt', 'a').write(promo_code + "\n")
                         return promo_code
             except Exception as error:
                 logger.error(f"Error while getting promo code: {error}")
             attempts += 1
-            logger.info(f"Attempt {attempts} was successful | Sleep {event_timeout}s before {attempts + 1} attempt to get promo code")
+            logger.info(f"Attempt {attempts} was successful | Sleep {event_timeout}s "
+                        f"before {attempts + 1} attempt to get promo code")
             await asyncio.sleep(delay=event_timeout)
     logger.warning(f"Promo code not found out of {max_attempts} attempts")
     input("Press enter to exit")
@@ -135,21 +161,25 @@ async def get_promo_code(app_token: str, promo_id: str, file: str, event_timeout
 
 
 if __name__ == '__main__':
-    print(f'HamsterKombat Promo(Games) Key Generator - https://github.com/Incognito-Coder\n')
-    print("Select a game:")
-    for key, value in games.items():
-        print(f"{key}: {value['name']}")
-    print("0: Exit")
-    game_choice = int(input("\nEnter the game number: "))
+    game_choice = random.choice(list(games.keys()))
     if game_choice in games:
-        max_attemps = input("Max retry number,(Default is 30): ")
+        max_attemps = 30
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
             while True:
                 if max_attemps:
-                    loop.run_until_complete(get_promo_code(app_token=games[game_choice]['appToken'], promo_id=games[game_choice]['promoId'], file=games[game_choice]['short'], max_attempts=int(max_attemps), event_timeout=20))
+                    logger.info(f"Генерируется токен для игры {games[game_choice]['name']}")
+                    loop.run_until_complete(get_promo_code(app_token=games[game_choice]['appToken'],
+                                                           promo_id=games[game_choice]['promoId'],
+                                                           file=games[game_choice]['short'],
+                                                           max_attempts=int(max_attemps),
+                                                           event_timeout=20))
+                    game_choice = random.choice(list(games.keys()))
                 else:
-                    loop.run_until_complete(get_promo_code(app_token=games[game_choice]['appToken'], promo_id=games[game_choice]['promoId'], file=games[game_choice]['short'], event_timeout=20))
+                    loop.run_until_complete(get_promo_code(app_token=games[game_choice]['appToken'],
+                                                           promo_id=games[game_choice]['promoId'],
+                                                           file=games[game_choice]['short'],
+                                                           event_timeout=20))
         except KeyboardInterrupt:
             pass
