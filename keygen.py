@@ -16,6 +16,7 @@ Session = sessionmaker(bind=engine)
 session = Session
 write_to_database = False
 
+
 class Record(Base):
     __tablename__ = 'records'
     id = Column(Integer, primary_key=True)
@@ -23,13 +24,18 @@ class Record(Base):
     content = Column(String(255))
     date_sent = Column(String(10), nullable=True)
 
+
 Base.metadata.create_all(engine)
 
 
 os.system('title HamsterKombat Games Code Generator')
 
 logger.remove()
-logger.add(sink=sys.stdout, format="<white>{time:YYYY-MM-DD HH:mm:ss}</white>"" | <level>{level: <8}</level>"" | <cyan><b>{line}</b></cyan>"" - <white><b>{message}</b></white>")
+logger.add(sink=sys.stdout,
+           format="<white>{time:YYYY-MM-DD HH:mm:ss}</white>"
+           " | <level>{level: <8}</level>"
+           " | <cyan><b>{line}</b></cyan>"
+           " - <white><b>{message}</b></white>")
 logger = logger.opt(colors=True)
 
 games = {
@@ -169,11 +175,18 @@ if __name__ == '__main__':
         try:
             while True:
                 if max_attemps:
-                    print(f"Генерируется токен для игры {choisen_game['name']}")
-                    loop.run_until_complete(get_promo_code(app_token=games[game_choice]['appToken'], promo_id=games[game_choice]['promoId'], file=games[game_choice]['short'], max_attempts=int(max_attemps), event_timeout=20))
+                    logger.info(f"Генерируется токен для игры {choisen_game['name']}")
+                    loop.run_until_complete(get_promo_code(app_token=games[game_choice]['appToken'],
+                                                           promo_id=games[game_choice]['promoId'],
+                                                           file=games[game_choice]['short'],
+                                                           max_attempts=int(max_attemps),
+                                                           event_timeout=20))
                     game_choice = random.randint(1, key)
                     choisen_game = games[game_choice]
                 else:
-                    loop.run_until_complete(get_promo_code(app_token=games[game_choice]['appToken'], promo_id=games[game_choice]['promoId'], file=games[game_choice]['short'], event_timeout=20))
+                    loop.run_until_complete(get_promo_code(app_token=games[game_choice]['appToken'],
+                                                           promo_id=games[game_choice]['promoId'],
+                                                           file=games[game_choice]['short'],
+                                                           event_timeout=20))
         except KeyboardInterrupt:
             pass
