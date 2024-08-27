@@ -161,6 +161,7 @@ async def get_promo_code(app_token: str, promo_id: str, file: str, event_timeout
 if __name__ == '__main__':
     for key, value in games.items():
          game_choice = random.randint(1, key)
+         choisen_game = games[game_choice]
     if game_choice in games:
         max_attemps = 30
         loop = asyncio.new_event_loop()
@@ -168,8 +169,10 @@ if __name__ == '__main__':
         try:
             while True:
                 if max_attemps:
+                    print(f"Генерируется токен для игры {choisen_game['name']}")
                     loop.run_until_complete(get_promo_code(app_token=games[game_choice]['appToken'], promo_id=games[game_choice]['promoId'], file=games[game_choice]['short'], max_attempts=int(max_attemps), event_timeout=20))
                     game_choice = random.randint(1, key)
+                    choisen_game = games[game_choice]
                 else:
                     loop.run_until_complete(get_promo_code(app_token=games[game_choice]['appToken'], promo_id=games[game_choice]['promoId'], file=games[game_choice]['short'], event_timeout=20))
         except KeyboardInterrupt:
