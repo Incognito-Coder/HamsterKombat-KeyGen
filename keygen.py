@@ -5,7 +5,26 @@ import aiohttp
 import asyncio
 import sys
 import os
+import random
 from loguru import logger
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker, declarative_base
+DATABASE_URL='mysql+pymysql://root:123123@192.168.10.28/123123'
+Base = declarative_base()
+engine = create_engine(DATABASE_URL)
+Session = sessionmaker(bind=engine)
+session = Session
+
+class Record(Base):
+    __tablename__ = 'records'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=True)
+    content = Column(String(255))
+    date_sent = Column(String(10), nullable=True)
+
+Base.metadata.create_all(engine)
+
+
 os.system('title HamsterKombat Games Code Generator')
 
 logger.remove()
@@ -80,6 +99,13 @@ def generate_client_id():
 def generate_event_id():
     return str(uuid.uuid4())
 
+def insert_to_db(promo_code):
+    with Session() as session:
+        new_code = Record(user_id=None, content=promo_code, date_sent=None)
+        session.add(new_code)
+        session.commit()
+        session.close()
+
 
 async def get_promo_code(app_token: str, promo_id: str, file: str, event_timeout: int, max_attempts: int = 30):
     headers = {
@@ -122,7 +148,8 @@ async def get_promo_code(app_token: str, promo_id: str, file: str, event_timeout
                     promo_code = response_json.get("promoCode")
                     if promo_code:
                         logger.success(f"Promo code is found: {promo_code}")
-                        open(f'{file}.txt', 'a').write(promo_code + "\n")
+                        insert_to_db(promo_code)
+#                        open(f'{file}.txt', 'a').write(promo_code + "\n")
                         return promo_code
             except Exception as error:
                 logger.error(f"Error while getting promo code: {error}")
@@ -135,20 +162,17 @@ async def get_promo_code(app_token: str, promo_id: str, file: str, event_timeout
 
 
 if __name__ == '__main__':
-    print(f'HamsterKombat Promo(Games) Key Generator - https://github.com/Incognito-Coder\n')
-    print("Select a game:")
     for key, value in games.items():
-        print(f"{key}: {value['name']}")
-    print("0: Exit")
-    game_choice = int(input("\nEnter the game number: "))
+         game_choice = random.randint(1, key)
     if game_choice in games:
-        max_attemps = input("Max retry number,(Default is 30): ")
+        max_attemps = 30
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
             while True:
                 if max_attemps:
                     loop.run_until_complete(get_promo_code(app_token=games[game_choice]['appToken'], promo_id=games[game_choice]['promoId'], file=games[game_choice]['short'], max_attempts=int(max_attemps), event_timeout=20))
+                    game_choice = random.randint(1, key)
                 else:
                     loop.run_until_complete(get_promo_code(app_token=games[game_choice]['appToken'], promo_id=games[game_choice]['promoId'], file=games[game_choice]['short'], event_timeout=20))
         except KeyboardInterrupt:
