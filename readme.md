@@ -13,7 +13,7 @@ git clone https://github.com/Incognito-Coder/HamsterKombat-KeyGen.git
 ```
 install python `v3.8` or upper then run following command:
 ```
-pip install loguru aiohttp asyncio pyinstaller
+pip install loguru aiohttp asyncio requests
 ```
 run script via:
 ```
