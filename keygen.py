@@ -85,8 +85,8 @@ if __name__ == '__main__':
     for key, value in games.items():
         print(f"{key}: {value['name']}")
     print("0: Exit")
-    game_choice = int(input("\nEnter the game number: "))
-    if game_choice in games:
+    game_choice = str(input("\nEnter the game number: "))
+    if game_choice in games.keys():
         max_attemps = input("Max retry number,(Default is 30): ")
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
